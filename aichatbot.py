@@ -17,8 +17,8 @@ from sqlalchemy import text
 #env.read_env()  # Ler o arquivo .env no diretório raiz do projeto
 
 # Verificar se a variável de ambiente está carregada
-groq_api_key = st.secrets.groq_key.GROQ_API_KEY
-DATABASE_URL = st.secrets.db_url.DATABASE_URL
+groq_api_key = st.secrets.GROQ_API_KEY
+DATABASE_URL = st.secrets.DATABASE_URL
 
 if not groq_api_key:
     raise ValueError("GROQ_API_KEY environment variable not set.")
