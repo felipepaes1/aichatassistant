@@ -1,0 +1,11 @@
+sqlalchemy~=2.0.29
+streamlit~=1.32.2
+pandas~=2.2.1
+pymysql~=1.1.0
+altair~=5.2.0
+sqlalchemy
+datetime~=5.5
+environs~=11.0.0
+groq~=0.9.0
+langchain~=0.2.11
+langchain_groq~=0.1.8
