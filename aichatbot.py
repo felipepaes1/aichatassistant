@@ -10,10 +10,10 @@ from sqlalchemy.exc import OperationalError
 from sqlalchemy import text
 
 DATABASE_URL = st.secrets["DATABASE_URL"]
-GROQ_API_KEY = st.secrets["GROQ_API_KEY"]
+#GROQ_API_KEY = st.secrets["GROQ_API_KEY"]
 
 # Inicialize primeiro o cliente Groq sem proxies ou parâmetros extras
-client = Groq(api_key=GROQ_API_KEY)
+client = Groq(api_key= st.secrets.get("GROQ_API_KEY"))
 
 # Agora passe o cliente já configurado para o ChatGroq
 # Verifique se ChatGroq precisa de 'model' ou 'model_name'.
