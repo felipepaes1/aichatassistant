@@ -12,8 +12,11 @@ from langchain.prompts import PromptTemplate
 DATABASE_URL = st.secrets["DATABASE_URL"]
 GROQ_API_KEY = st.secrets["GROQ_API_KEY"]
 
-# Inicializa o cliente da Groq
-client = Groq(api_key=GROQ_API_KEY)
+# Inicializa o cliente Groq com timeout de 20 segundos (padrão sugerido: 1 minuto)
+client = Groq(
+    api_key=GROQ_API_KEY,
+    timeout=20.0  # Ajuste conforme necessário
+)
 
 # Cria a instância do modelo (ChatGroq)
 chat = ChatGroq(
@@ -24,7 +27,6 @@ chat = ChatGroq(
 
 # Definição da mensagem de sistema e prompt
 system_message = "Você é o assistente de um gestor de produção na indústria que conhece dados de controle de estoque e produção."
-# Montamos o prompt de forma simples: primeiro a mensagem de sistema, depois a pergunta do usuário.
 human_prompt_template = system_message + "\n\nUsuário: {text}\nAssistente:"
 
 prompt = PromptTemplate(template=human_prompt_template, input_variables=["text"])
