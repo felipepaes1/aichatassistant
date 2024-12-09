@@ -5,7 +5,7 @@ from langchain_groq import ChatGroq
 #from langchain.agents import AgentType
 #from langchain.agents import load_tools
 #from langchain.agents import initialize_agent
-from groq import Groq
+from groq import Groq, DefaultHttpxClient
 from environs import Env
 import sqlalchemy
 from sqlalchemy import create_engine
@@ -24,7 +24,11 @@ if not groq_api_key:
     raise ValueError("GROQ_API_KEY environment variable not set.")
 
 client = Groq(
-    api_key=groq_api_key,
+    api_key=os.environ.get("GROQ_API_KEY"),
+    http_client=DefaultHttpxClient(
+        proxies=None,  # Desabilita o uso de proxies
+        transport=httpx.HTTPTransport(local_address="0.0.0.0"),
+    ),
 )
 
 engine = sqlalchemy.create_engine(DATABASE_URL, pool_size=5, max_overflow=10)
