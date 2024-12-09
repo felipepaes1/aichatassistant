@@ -21,8 +21,8 @@ from httpx import Client
 #groq_api_key = st.secrets["GROQ_API_KEY"]
 DATABASE_URL = st.secrets["DATABASE_URL"]
 
-if not groq_api_key:
-    raise ValueError("GROQ_API_KEY environment variable not set.")
+#if not groq_api_key:
+#    raise ValueError("GROQ_API_KEY environment variable not set.")
 
 client = Groq(
     api_key=st.secrets["GROQ_API_KEY"],
