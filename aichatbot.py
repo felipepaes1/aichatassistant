@@ -9,22 +9,21 @@ from sqlalchemy import create_engine
 from sqlalchemy.exc import OperationalError
 from sqlalchemy import text
 
-# Carrega as credenciais do Streamlit
 DATABASE_URL = st.secrets["DATABASE_URL"]
 GROQ_API_KEY = st.secrets["GROQ_API_KEY"]
 
-# Inicialização do LLM (ChatGroq)
-# Ajustamos para usar `model` em vez de `model_name`, se o ChatGroq for compatível.
-# Caso `ChatGroq` não aceite `model`, tente `model_name` novamente, mas a documentação da groq usa `model`.
-# Também incluímos a `api_key`.
+# Inicialize primeiro o cliente Groq sem proxies ou parâmetros extras
+client = Groq(api_key=GROQ_API_KEY)
+
+# Agora passe o cliente já configurado para o ChatGroq
+# Verifique se ChatGroq precisa de 'model' ou 'model_name'.
+# Pela documentação do Groq, usamos 'model'. Caso dê erro, tente 'model_name'.
 chat = ChatGroq(
-    api_key=GROQ_API_KEY,
+    client=client,
     temperature=0,
     model="llama3-8b-8192"
 )
 
-# Configuração do prompt
-# Alteramos "human" para "user" para alinhar com a documentação do groq: system, user, assistant.
 system_message = "Você é o assistente de um gestor de produção na indústria que conhece dados de controle de estoque e produção"
 prompt = ChatPromptTemplate.from_messages([
     ("system", system_message),
@@ -33,7 +32,7 @@ prompt = ChatPromptTemplate.from_messages([
 
 chain = prompt | chat
 
-# Teste de conexão com o banco de dados
+# Teste de conexão com o banco
 engine = sqlalchemy.create_engine(DATABASE_URL, pool_size=5, max_overflow=10)
 try:
     with engine.connect() as connection:
@@ -60,7 +59,6 @@ def container_chat(streamlit_visual):
         with st.chat_message("user"):
             st.markdown(user_input)
 
-        # Gera resposta do modelo em streaming
         response_stream = chain.stream({"text": user_input})
         full_response = ""
 
@@ -71,7 +69,6 @@ def container_chat(streamlit_visual):
             full_response += str(partial_response.content)
             response_text.markdown(full_response + "▌")
 
-        # Adiciona a resposta completa ao histórico
         st.session_state.messages.append({"role": "assistant", "content": full_response})
 
 def streamlit_visual():
