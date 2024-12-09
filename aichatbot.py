@@ -11,6 +11,7 @@ import sqlalchemy
 from sqlalchemy import create_engine
 from sqlalchemy.exc import OperationalError
 from sqlalchemy import text
+from httpx import Client
 
 # Inicializar environs
 #env = Env()
@@ -23,7 +24,12 @@ DATABASE_URL = st.secrets["DATABASE_URL"]
 if not groq_api_key:
     raise ValueError("GROQ_API_KEY environment variable not set.")
 
-client = Groq(api_key=groq_api_key)
+http_client = Client(follow_redirects=True)
+
+try:
+    client = Groq(api_key=groq_api_key, http_client=http_client)
+except TypeError as e:
+    raise RuntimeError(f"Erro ao inicializar o cliente Groq com configuração manual: {e}")
 
 engine = sqlalchemy.create_engine(DATABASE_URL, pool_size=5, max_overflow=10)
 
