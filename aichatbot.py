@@ -24,10 +24,9 @@ if not groq_api_key:
     raise ValueError("GROQ_API_KEY environment variable not set.")
 
 client = Groq(
-    api_key=os.environ.get("GROQ_API_KEY"),
+    api_key=groq_api-key,
     http_client=DefaultHttpxClient(
         proxies=None,  # Desabilita o uso de proxies
-        transport=httpx.HTTPTransport(local_address="0.0.0.0"),
     ),
 )
 
