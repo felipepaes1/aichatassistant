@@ -25,9 +25,6 @@ if not groq_api_key:
 
 client = Groq(
     api_key=groq_api_key,
-    http_client=DefaultHttpxClient(
-        proxies=None,  # Desabilita o uso de proxies
-    ),
 )
 
 engine = sqlalchemy.create_engine(DATABASE_URL, pool_size=5, max_overflow=10)
