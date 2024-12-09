@@ -23,9 +23,7 @@ DATABASE_URL = st.secrets["DATABASE_URL"]
 if not groq_api_key:
     raise ValueError("GROQ_API_KEY environment variable not set.")
 
-client = Groq(
-    api_key=groq_api_key,
-)
+client = Groq(api_key=groq_api_key)
 
 engine = sqlalchemy.create_engine(DATABASE_URL, pool_size=5, max_overflow=10)
 
