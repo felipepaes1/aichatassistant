@@ -2,41 +2,42 @@ import os
 import streamlit as st
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_groq import ChatGroq
-#from langchain.agents import AgentType
-#from langchain.agents import load_tools
-#from langchain.agents import initialize_agent
-from groq import Groq, DefaultHttpxClient
+from groq import Groq
 from environs import Env
 import sqlalchemy
 from sqlalchemy import create_engine
 from sqlalchemy.exc import OperationalError
 from sqlalchemy import text
-import httpx
 
-# Inicializar environs
-#env = Env()
-#env.read_env()  # Ler o arquivo .env no diretório raiz do projeto
-
-# Verificar se a variável de ambiente está carregada
-#groq_api_key = st.secrets["GROQ_API_KEY"]
+# Carrega as credenciais do Streamlit
 DATABASE_URL = st.secrets["DATABASE_URL"]
+GROQ_API_KEY = st.secrets["GROQ_API_KEY"]
 
-#if not groq_api_key:
-#    raise ValueError("GROQ_API_KEY environment variable not set.")
-http_client = httpx.Client(follow_redirects=True)
-
-client = Groq(
-    api_key=st.secrets["GROQ_API_KEY"],
-    http_client=http_client
+# Inicialização do LLM (ChatGroq)
+# Ajustamos para usar `model` em vez de `model_name`, se o ChatGroq for compatível.
+# Caso `ChatGroq` não aceite `model`, tente `model_name` novamente, mas a documentação da groq usa `model`.
+# Também incluímos a `api_key`.
+chat = ChatGroq(
+    api_key=GROQ_API_KEY,
+    temperature=0,
+    model="llama3-8b-8192"
 )
 
-engine = sqlalchemy.create_engine(DATABASE_URL, pool_size=5, max_overflow=10)
+# Configuração do prompt
+# Alteramos "human" para "user" para alinhar com a documentação do groq: system, user, assistant.
+system_message = "Você é o assistente de um gestor de produção na indústria que conhece dados de controle de estoque e produção"
+prompt = ChatPromptTemplate.from_messages([
+    ("system", system_message),
+    ("user", "{text}")
+])
 
+chain = prompt | chat
+
+# Teste de conexão com o banco de dados
+engine = sqlalchemy.create_engine(DATABASE_URL, pool_size=5, max_overflow=10)
 try:
     with engine.connect() as connection:
-        # Executando uma consulta simples
         result = connection.execute(text("SELECT 1"))
-        # Verificando o resultado
         if result.scalar() == 1:
             print("Conexão com o banco de dados bem-sucedida!")
         else:
@@ -44,32 +45,22 @@ try:
 except OperationalError as e:
     print(f"Erro ao conectar ao banco de dados: {e}")
 
-# Configuração do prompt e do modelo
-system = "You are a helpful assistant."
-human = "{text}"
-prompt = ChatPromptTemplate.from_messages([("system", "Você é o assistente de um gestor de produção na indústria que conhece dados de controle de estoque e produção"), ("human", human)])
-chat = ChatGroq(temperature=0, model_name="llama3-8b-8192")
-chain = prompt | chat
-
 def container_chat(streamlit_visual):
-   # messages = st.container(height=800)
-   # prompt_input = st.chat_input("Pergunte algo ao assistente!")
-
     if "messages" not in st.session_state:
         st.session_state.messages = []
 
-    # Exibe mensagens do histórico
+    # Exibe o histórico de mensagens
     for message in st.session_state.messages:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
 
-    # Caixa de entrada para o usuário
+    # Entrada do usuário
     if user_input := st.chat_input("Como posso te ajudar hoje?"):
         st.session_state.messages.append({"role": "user", "content": user_input})
         with st.chat_message("user"):
             st.markdown(user_input)
 
-        # Adiciona um container para a resposta do modelo
+        # Gera resposta do modelo em streaming
         response_stream = chain.stream({"text": user_input})
         full_response = ""
 
@@ -80,7 +71,7 @@ def container_chat(streamlit_visual):
             full_response += str(partial_response.content)
             response_text.markdown(full_response + "▌")
 
-        # Salva a resposta completa no histórico
+        # Adiciona a resposta completa ao histórico
         st.session_state.messages.append({"role": "assistant", "content": full_response})
 
 def streamlit_visual():
