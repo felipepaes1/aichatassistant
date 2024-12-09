@@ -18,18 +18,15 @@ from httpx import Client
 #env.read_env()  # Ler o arquivo .env no diretório raiz do projeto
 
 # Verificar se a variável de ambiente está carregada
-groq_api_key = st.secrets["GROQ_API_KEY"]
+#groq_api_key = st.secrets["GROQ_API_KEY"]
 DATABASE_URL = st.secrets["DATABASE_URL"]
 
 if not groq_api_key:
     raise ValueError("GROQ_API_KEY environment variable not set.")
 
-http_client = Client(follow_redirects=True)
-
-try:
-    client = Groq(api_key=groq_api_key, http_client=http_client)
-except TypeError as e:
-    raise RuntimeError(f"Erro ao inicializar o cliente Groq com configuração manual: {e}")
+client = Groq(
+    api_key=st.secrets["GROQ_API_KEY"],
+)
 
 engine = sqlalchemy.create_engine(DATABASE_URL, pool_size=5, max_overflow=10)
 
